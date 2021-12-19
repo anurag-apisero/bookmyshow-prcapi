@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="5404849a-de43-4ba1-87ad-07423913754e" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="e4d0f43a-bbcc-423c-9b7d-4955bda8e5d7" >
+		<db:my-sql-connection host="db4free.net" port="3306" user="ayanc1" password="luckyTHIRTEEN" database="movies_bms" />
+	</db:config>
+	<email:smtp-config name="Email_SMTP1" doc:name="Email SMTP" doc:id="c29b0f72-b4fb-4237-9aca-9fbb9e42a409" >
+		<email:smtp-connection host="smtp.gmail.com" port="587" user="anurag.a.puri@apisero.com" password="\mg.Z2sn" >
+			<email:properties >
+				<email:property key="mail.smtp.starttls.enable" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="a6debc33-0c59-4624-8c30-4427ddaa739a" responseTimeout="120000">
+		<http:request-connection host="localhost" port="8082"/>
+	</http:request-config>
+</mule>

@@ -1,0 +1,67 @@
+<wsdl:definitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://soap.training.mulesoft.com/"
+xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ns1="http://schemas.xmlsoap.org/soap/http" name="BookMyShowOrderDetails"
+targetNamespace="http://soap.training.mulesoft.com/">
+<wsdl:types>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://soap.training.mulesoft.com/" elementFormDefault="unqualified"
+targetNamespace="http://soap.training.mulesoft.com/" version="1.0">
+<xs:element name="booking" type="tns:booking"/>
+<xs:element name="bookingResponse" type="tns:bookingResponse"/>
+<xs:complexType name="booking">
+<xs:sequence>
+<xs:element name="movieName" type="xsd:string" minOccurs="0"/>
+<xs:element name="Location" type="xsd:string" minOccurs="0"/>
+<xs:element name="showDate" type="xsd:string" minOccurs="0"/>
+<xs:element name="NoOfSeats" type="xsd:int" minOccurs="0"/>
+<xs:element name="showTime" type="xsd:string" minOccurs="0"/>
+<xs:element name="City" type="xsd:string" minOccurs="0"/>
+<xs:element name="Email" type="xsd:string" minOccurs="0"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="bookingResponse">
+<xs:sequence>
+<xs:element maxOccurs="1" minOccurs="0" name="e-Ticket" type="tns:displayticket"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="displayticket">
+<xs:sequence>
+<xs:element minOccurs="0" name="movieName" type="xs:string"/>
+<xs:element minOccurs="0" name="NoOfSeats" type="xs:int"/>
+<xs:element minOccurs="0" name="Location" type="xs:string"/>
+<xs:element minOccurs="0" name="showTime" type="xs:string"/>
+<xs:element minOccurs="0" name="showDate" type="xs:string"/>
+<xs:element minOccurs="0" name="TicketPriceToBePaid" type="xs:int"/>
+</xs:sequence>
+</xs:complexType>
+</xs:schema>
+</wsdl:types>
+<wsdl:message name="bookingResponse">
+<wsdl:part element="tns:bookingResponse" name="parameters"> </wsdl:part>
+</wsdl:message>
+<wsdl:message name="booking">
+<wsdl:part element="tns:booking" name="parameters"> </wsdl:part>
+</wsdl:message>
+
+<wsdl:portType name="BookMyShow">
+<wsdl:operation name="Ticket">
+<wsdl:input message="tns:booking" name="booking"> </wsdl:input>
+<wsdl:output message="tns:bookingResponse" name="bookingResponse"> </wsdl:output>
+</wsdl:operation>
+</wsdl:portType>
+<wsdl:binding name="BookMyShowBinding" type="tns:BookMyShow">
+<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+<wsdl:operation name="Ticket">
+<soap:operation soapAction="" style="document"/>
+<wsdl:input name="booking">
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="bookingResponse">
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+</wsdl:binding>
+<wsdl:service name="BookMyShowOrderDetails">
+<wsdl:port binding="tns:BookMyShowBinding" name="port">
+<soap:address location="http://mu.learn.mulesoft.com/delta"/>
+</wsdl:port>
+</wsdl:service>
+</wsdl:definitions>

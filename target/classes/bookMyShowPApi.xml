@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="5b1bb794-cde0-4b63-97d6-a563623fa9a1" >
+		<email:smtp-connection host="smtp.gmail.com" port="587" user="masoom.goyal@apisero.com" password="August@2021" >
+			<email:properties >
+				<email:property key="mail.smtp.starttls.enable" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+	<flow name="bookMyShowPAPI" doc:id="4e18e3b7-036a-44fc-9f28-f84f54523f6a" >
+		<http:listener doc:name="Listener" doc:id="dbda5b83-685c-4b7d-a24b-a43a3ef5c138" config-ref="HTTP_Listener_config" path="/order"/>
+		<logger level="INFO" doc:name="initialLogger" doc:id="374b69ec-8839-4daa-a8ac-0b22a4a6c32e" message="#[payload]"/>
+		<set-variable value="#[payload.NoOfSeats]" doc:name="No Of Seats" doc:id="041220de-a138-454a-ad7a-920795e820e3" variableName="NoOfSeats" mimeType="application/json"/>
+		<set-variable value="#[payload.email]" doc:name="Customer Email" doc:id="33197d5b-63ab-45fe-b0d9-9bc6cb4e9565" variableName="CustomerEmail" mimeType="application/json"/>
+		<db:select doc:name="Select availableseats&amp;price" doc:id="240e157a-8d8a-4b92-81ec-57ffd0133e62" config-ref="Database_Config" target="db_out">
+			<reconnect />
+			<db:sql><![CDATA[select AvailableSeats,Price from movieshows where MovieName=:MovieName and ShowDate=:ShowDate and ShowTime=:ShowTime and City=:City and Location=:Location ]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+'MovieName': payload.MovieName,
+'ShowDate': payload.ShowDate,
+'ShowTime': payload.ShowTime,
+'Location': payload.Location,
+'City': payload.City
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="AvailableSeats" doc:id="01a229f4-f0b7-4045-8954-6af53d6089f5">
+			<when expression="#[(vars.db_out[0].AvailableSeats as Number)&gt;=vars.NoOfSeats]">
+				<flow-ref doc:name="discounts" doc:id="3077dc43-f294-48ba-84c9-41f49baa3a01" name="discounts" />
+			</when>
+			<otherwise>
+				<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;vars.setVar.NoOfSeats as String ++ " seats are not available for this show. Available seats left are : " ++ vars.db_out[0].availableseats as String]' doc:name="seatsNotAvailable" doc:id="aedbdd43-a538-49cb-84da-6e6f23d26002" />
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="finalLogger" doc:id="869a75e5-c8f2-4a5d-aa31-4deba7b4e6ba" message="#[payload]" />
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="ed0a5c14-6138-49ff-8b2c-268ed7542a69" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="d8139fbb-2989-4291-b3fd-742b174b29a6" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message" : error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="discounts" doc:id="f8f2f913-641b-4370-b675-703436c64488" >
+		<choice doc:name="set discount" doc:id="370e7329-d3ef-4815-871f-04bf2c704f2c" >
+			<when expression="#[vars.NoOfSeats as Number &gt;0 and vars.NoOfSeats as Number &lt;3]">
+				<set-variable doc:name="discount" doc:id="116814ce-cee4-4f5a-b42a-9022d1f2f113" variableName="discount" value="NA"/>
+			</when>
+			<when expression="#[vars.NoOfSeats as Number &gt;3 and vars.NoOfSeats as Number &lt;200]">
+				<set-variable value="10%" doc:name="discount" doc:id="2272364f-8cd3-48a7-bb33-6a5aab6231d1" variableName="discount" />
+			</when>
+			<otherwise>
+				<raise-error doc:name="Raise error" doc:id="d8897576-6458-484f-aa39-ca1042f1dda9" type="SEATS:VALUE" description="NoOfSeats should be between 1-200 only."/>
+			</otherwise>
+		</choice>
+		<db:update doc:name="updateAvailableSeats" doc:id="d18ab9ad-167c-4046-bc0a-8a3ae6f1a3e5" config-ref="Database_Config" target="afterUpdate">
+			<reconnect />
+			<db:sql ><![CDATA[update movieshows set AvailableSeats=AvailableSeats-:NoOfSeats where MovieName=:MovieName and ShowDate=:ShowDate and ShowTime=:ShowTime and City=:City and Location=:Location ]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+'NoOfSeats': vars.NoOfSeats as Number,
+'MovieName': payload.MovieName,
+'ShowDate': payload.ShowDate,
+'ShowTime': payload.ShowTime,
+'Location': payload.Location,
+'City': payload.City	
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="ticketGenerator" doc:id="8c97e6f6-edbf-48c7-9056-83d5c8ebdcb5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+var Price=vars.db_out[0].Price as Number default 0
+
+---
+
+{
+	
+	'BookingId' : randomInt(1000),
+	'MovieName' : payload.MovieName as String default " ",
+	'Location' : payload.Location as String default " ",
+	'ShowTime' : payload.ShowTime as String default " ",
+	'ShowDate' :payload.ShowDate as String default " ",
+	'NoofSeatsBooked' : vars.NoOfSeats as Number default 0,
+	'Discount' : vars.discount  as String default " ",
+	'TotalPrice' : if(vars.discount=='10%')
+	((Price * 0.9 as Number default 0))*(vars.NoOfSeats as Number)
+	else
+	((Price)) * (vars.NoOfSeats as Number)
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<email:send doc:name="Send e-Ticket" doc:id="4e0407b8-2ed0-4821-b090-ca32bda0ced8" config-ref="Email_SMTP1" fromAddress="anurag.a.puri@apisero.com" subject="Ticket Confirmation Details">
+				<email:to-addresses>
+					<email:to-address value="#[vars.CustomerEmail]" />
+				</email:to-addresses>
+			<email:body contentType="text/plain" encoding="UTF-8">
+				</email:body>
+			</email:send>
+		<http:request method="POST" doc:name="Request to OrderDetails" doc:id="f3abee17-9f84-41c0-b884-c004f3ff3a93" config-ref="HTTP_Request_configuration" path="/api/OrderDetails" />
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b627753d-ab48-4d17-9c0c-5e219aae12d9" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="f65420eb-464d-4838-8994-f725d7b40ba3" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message" : error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="0e1340fc-3ca5-49e8-abc2-8f76c370b156" type="SEATS:VALUE">
+				<ee:transform doc:name="Transform Message" doc:id="a6b73f95-79e4-41b7-85d8-563fe72e81d1" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	"message" : error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
