@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="bookMyShowPApi-test-suite.xml" />
+	<munit:test name="bookMyShowPApi-test-suite-bookMyShowPAPITest" doc:id="42849309-5b18-4555-b9ac-a3b6f6cecfa0" description="Test">
+		<munit:behavior >
+			<munit:set-event doc:name="Set Event" doc:id="89188194-c610-4b45-92a4-b20d37c2c347" >
+				<munit:payload value=' {&#10;     "email":"anurag.a.puri@apisero.com",&#10;     "NoOfSeats":4,&#10;     "MovieName":"Ludo",&#10;     "ShowDate":"2021-12-25",&#10;     "ShowTime":"17:00",&#10;     "City":"Delhi",&#10;     "Location":"PVR Priya"&#10; }' mediaType="application/json" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to bookMyShowPAPI" doc:id="76399d54-833d-4386-94bc-5ade576eb1dc" name="bookMyShowPAPI"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="cdfd0ca4-8798-476d-bfdf-79d242c5aab7" message="payload is null" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="bookMyShowPApi-test-suite-bookMyShowPAPITest1" doc:id="07977089-fc38-4be7-a220-ee4ee31879f3" description="Test">
+		<munit:behavior >
+			<munit:set-event doc:name="Set Event" doc:id="cba5f602-c1fb-4984-8907-07021c487c5c" >
+				<munit:payload value=' {&#10;     "email":"anurag.a.puri@apisero.com",&#10;     "NoOfSeats":199,&#10;     "MovieName":"Ludo",&#10;     "ShowDate":"2021-12-25",&#10;     "ShowTime":"17:00",&#10;     "City":"Delhi",&#10;     "Location":"PVR Priya"&#10; }' />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to bookMyShowPAPI" doc:id="0c75be50-3318-49e5-9fc7-8aef814cda26" name="bookMyShowPAPI"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="572aeb7e-aa3e-4358-a2f5-dda1892b4b4c" message="payload is null" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

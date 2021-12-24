@@ -15,6 +15,7 @@
       "exportedResources": [
         "api/OrderManagement.xml",
         "application-types.xml",
+        "bookMyShowPApi-test-suite.xml",
         "bookMyShowPApi.xml",
         "global.xml",
         "log4j2.xml"
